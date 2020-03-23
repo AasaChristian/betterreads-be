@@ -4,6 +4,7 @@ const BooksOnShelf = require("../models/user-books-on-a-shelf.js");
 const UserShelves = require("../models/user-shelves");
 const UserBooks = require("../models/user-books");
 const Books = require("../models/books.js");
+const userLogs = require("../routers/logs-helper.js")
 
 router.post("/shelves/:shelfId", (req, res) => {
   const shelfId = req.params.shelfId;
@@ -36,7 +37,8 @@ router.post("/shelves/:shelfId", (req, res) => {
                       res,
                       BooksOnShelf,
                       shelfId,
-                      bookId
+                      bookId,
+                      0
                     );
                   })
                   .catch(err =>
@@ -106,10 +108,10 @@ router.delete("/shelves/:shelfId", (req, res) => {
 
   if ((bookId, shelfId)) {
     BooksOnShelf.remove(bookId, shelfId)
-      .then(deleted =>
-        res
-          .status(200)
-          .json({ message: "book removed from shelf", deleted: deleted })
+      .then(deleted =>{
+        userLogs.logPutDel(res, bookId, shelfId, "book removed from shelf", "book was not removed")
+      }
+        
       )
       .catch(err =>
         res.status(500).json({ message: "error in removing book from shelf" })
@@ -128,9 +130,7 @@ router.put("/shelves/:shelfId", (req, res) => {
     BooksOnShelf.update(bookId, shelfId, newShelfId)
       .then(updated => {
         if (updated[0].id) {
-          res
-            .status(200)
-            .json({ message: "book moved to new shelf", ShelfId: updated });
+         userLogs.logPutDel(res, bookId, shelfId, "book has been moved", "book was not moved",shelfId, newShelfId)
         } else {
           res
             .status(200)
@@ -183,5 +183,7 @@ router.get("/shelves/allbooks/:shelfId", (req, res) => {
     res.status(404).json({ message: "no shelf id exist" });
   }
 });
+
+
 
 module.exports = router;

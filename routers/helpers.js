@@ -1,3 +1,7 @@
+
+const userLogs = require("../routers/logs-helper.js")
+
+
 module.exports = {
 
   // MARK: -- UserBooks helper (in routers)
@@ -24,11 +28,13 @@ module.exports = {
   // MARK: -- UserBooks helper (in routers)
   addToUserBooks: async function(req, res, Model, userbookObject) {
     await Model.add(userbookObject)
-      .then(added => res.status(201).json(added) )
+      .then(added => {
+        userLogs.logAdd(res, req, added, "userLibrary", "book added to userLibrary", "error adding book to userLibrary")
+       } )
       .catch(err => res.status(500).json({ message: "Error in posting userbook"} ) )
   },
 
-  // MARK: -- BooksOnShelf helper (in routers)
+
   addToUserShelf: function(req, res, Model, shelfId, bkId) {
     Model.findBook(shelfId, bkId)
       .then(bookonshelf => {
@@ -36,15 +42,23 @@ module.exports = {
           res.status(500).json({ message: "book is already in user shelf" });
         } else {
           if ((bkId, shelfId)) {
+
             const bookObj = { bookId: bkId, shelfId: shelfId }
             Model.addBooks(bookObj)
-                 .then(book => res.status(200).json({ book, message: "book added to user-shelf" }))
-                 .catch(err => res.status(500).json({ message: "error in adding book to shelf. Book may already exist on shelf." }))
+                 .then(book => {  
+                  userLogs.logAdd(res, req, book, "userLibrary", "book added to shelf", "error adding book to shelf")
+                 })
+              .catch(err => res.status(500).json({ message: "error in adding book to shelf. Book may already exist on shelf." }))
           } else {
             res.status(500).json({ message: "book id and shelf id undefined"})
           }
         }
       }).catch(err => res.status(500).json({ message: "error occurred" }))
-  }
+  },
 
-};
+}
+
+
+
+
+

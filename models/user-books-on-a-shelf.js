@@ -3,6 +3,7 @@ const db = require("../database/db-config.js");
 module.exports = {
 	findBook,
 	findAllBooks,
+	findById,
 	addBooks,
 	update,
 	remove,
@@ -43,8 +44,11 @@ function findAllBooks(shelfId) {
 
 
 function findById(id) {
-	return db('userBooksOnAShelf')
-		.where({ id })
+	return db('userBooksOnAShelf as bs')
+		.join('books as b', 'bs.bookId', 'b.id')
+		.join('userShelves as s', 's.id', 'bs.shelfId')
+		.join('userBooks as ub', 'ub.bookId', 'b.id')
+		.where("bs.id", id)
 		.first()
 		.select("*");
 }
